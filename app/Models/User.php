@@ -7,10 +7,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    const STATUS = [
+        'verifying' => 'verifying',
+        'active' => 'active'
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -19,18 +25,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
-        'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
+        'phone',
+        'phone_verified_at',
+        'sms_code_verify',
+        'status',
+        'default_store_id'
     ];
 
     /**
@@ -39,6 +38,18 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
     ];
+
+    const TOKEN_NAME = 'user';
+
+    public function stores(): HasMany
+    {
+        return $this->hasMany(Store::class, 'owner_id');
+    }
+
+    public function mainStore()
+    {
+        return $this->hasOne(Store::class, 'id', 'default_store_id');
+    }
 }
